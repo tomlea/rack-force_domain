@@ -1,1 +1,1 @@
-require File.expand_path("rack/force_domain", __FILE__)
+require File.join(File.dirname(__FILE__), *%w[rack force_domain])
