@@ -12,7 +12,7 @@ Directs all traffic to a single domain via 301 redirects.
 
 ### Heroku Config
 
-    heroku config add DOMAIN="foo.com"
+    heroku config:add DOMAIN="foo.com"
 
 
 Now all requests to www.foo.com (or anything else pointed at the app) will 301 to foo.com.
