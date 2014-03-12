@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   # Change these as appropriate
   s.name              = "rack-force_domain"
-  s.version           = "0.2.0"
+  s.version           = "0.3.0"
   s.summary           = "Force all visitors onto a single domain."
   s.author            = "Tom Lea"
   s.email             = "contrib@tomlea.co.uk"
