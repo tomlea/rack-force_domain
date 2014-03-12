@@ -1,32 +1,24 @@
 require 'rack'
 
 class Rack::ForceDomain
-  def initialize(app, domain)
+  def initialize(app, host, alternate_domains = [])
     @app = app
-    if domain and domain != ""
-      @domain = domain
+    @host = host unless host.to_s.empty?
+    @allowable_domains = [@host, *alternate_domains].compact
+  end
 
-      # set host from domain
-      domain_parts = domain.split(":")
-      @host = domain_parts[0]
-
-      # add port if applicable
-      if domain_parts[1]
-        port = domain_parts[1].to_i
-        @port = port if port > 0
-      end
-    end
+  def ok?(domain)
+    @host.nil? or @allowable_domains.include?(domain)
   end
 
   def call(env)
     request = Rack::Request.new(env)
-    host_mismatch = (@host && request.host != @host)
-    port_mismatch = (@port && request.port != @port)
-    if host_mismatch or port_mismatch
-      fake_request = Rack::Request.new(env.merge("HTTP_HOST" => @domain, "SERVER_PORT" => @port || request.port))
-      Rack::Response.new([], 301, "Location" => fake_request.url).finish
-    else
+
+    if ok? request.host
       @app.call(env)
+    else
+      fake_request = Rack::Request.new(env.merge("HTTP_HOST" => @host))
+      Rack::Response.new([], 301, "Location" => fake_request.url).finish
     end
   end
 end

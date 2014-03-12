@@ -21,18 +21,35 @@ class ForceDomainTest < Test::Unit::TestCase
     assert !@called, "should not have passed through"
   end
 
-  def test_should_301_if_port_is_wrong
-    app = Rack::ForceDomain.new(lambda{|env| @called = true; [200, [], {}] } , "foo.com:3000")
-    status, body, headers = app.call(Rack::MockRequest.env_for("http://foo.com/baz"))
-    assert_equal 301, status
-    assert_equal "http://foo.com:3000/baz", headers["Location"]
-    assert !@called, "should not have passed through"
-  end
-
   def test_should_passthrough_for_correct_domain
     app = Rack::ForceDomain.new(lambda{|env| @called = true; [200, [], {}] } , "foo.com")
     status, body, headers = app.call(Rack::MockRequest.env_for("http://foo.com/baz"))
     assert_equal 200, status
     assert @called, "expected the request to be passed through"
+  end
+
+  def test_should_allow_domains_listed_in_alternate_domains_through
+    app = Rack::ForceDomain.new(lambda{|env| @called = true; [200, [], {}] } , "foo.com", ["bar.com", "baz.com"])
+
+    @called = false
+    status, body, headers = app.call(Rack::MockRequest.env_for("http://bar.com/baz"))
+    assert_equal 200, status
+    assert @called, "expected the request to be passed through"
+
+    @called = false
+    status, body, headers = app.call(Rack::MockRequest.env_for("http://baz.com/baz"))
+    assert_equal 200, status
+    assert @called, "expected the request to be passed through"
+
+    status, body, headers = app.call(Rack::MockRequest.env_for("http://other.com/baz"))
+    assert_equal 301, status
+    assert_equal "http://foo.com/baz", headers["Location"]
+  end
+
+  def test_it_redirects_https_to_https
+    app = Rack::ForceDomain.new(lambda{|env| @called = true; [200, [], {}] } , "foo.com")
+    status, body, headers = app.call(Rack::MockRequest.env_for("https://bar.com/baz"))
+    assert_equal 301, status
+    assert_equal "https://foo.com/baz", headers["Location"]
   end
 end
