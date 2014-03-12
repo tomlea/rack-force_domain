@@ -17,4 +17,6 @@ Gem::Specification.new do |s|
   s.require_paths     = ["lib"]
 
   s.rubyforge_project = "rack-force_domain"
+  s.add_development_dependency("rack-test")
+  s.add_development_dependency("rake")
 end
